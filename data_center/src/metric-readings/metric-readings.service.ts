@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MetricReading } from './entities/metric-reading.entity';
 import { CreateMetricReadingDto } from './dto/create-metric-reading.dto';
-import { UpdateMetricReadingDto } from './dto/update-metric-reading.dto';
+import { UpdateMetricReadingDto } from './dto/update-metric-reading-dto';
 
 @Injectable()
 export class MetricReadingsService {

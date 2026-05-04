@@ -1,7 +1,7 @@
 // src/components/components.controller.ts
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { ComponentsService } from './components.service';
-import { CreateComponentDto } from './dto/create-component.dto';
+import { ComponentsService } from './component.service';
+import { CreateComponentDto } from './dto/create-coponent.dto';
 import { UpdateComponentDto } from './dto/update-component.dto';
 
 @Controller('components')

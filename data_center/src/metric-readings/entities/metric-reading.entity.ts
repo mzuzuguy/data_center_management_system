@@ -1,6 +1,6 @@
 // src/metric-readings/entities/metric-reading.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Component } from '../../components/entities/component.entity';
+import { Component } from '../../component/entities/component.entity';
 
 @Entity('metric_readings')
 export class MetricReading {

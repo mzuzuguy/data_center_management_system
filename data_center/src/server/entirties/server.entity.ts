@@ -1,6 +1,6 @@
 // src/servers/entities/server.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Component } from '../../components/entities/component.entity';
+import { Component } from '../../component/entities/component.entity';
 
 @Entity('servers')
 export class Server {

@@ -1,0 +1,7 @@
+What you will build
+Agent 1 — System metrics agent
+A C++ program that reads your computer's real CPU usage and RAM usage then sends them as JSON to your NestJS API automatically.
+Agent 2 — Storage agent
+A C++ program that checks your disk space used vs total and sends it to the API.
+Agent 3 — Security agent
+A C++ program that reads a log file and counts failed login attempts then reports them.

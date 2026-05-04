@@ -2,7 +2,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { MetricReadingsService } from './metric-readings.service';
 import { CreateMetricReadingDto } from './dto/create-metric-reading.dto';
-import { UpdateMetricReadingDto } from './dto/update-metric-reading.dto';
+import { UpdateMetricReadingDto } from './dto/update-metric-reading-dto';
 
 @Controller('metric-readings')
 export class MetricReadingsController {

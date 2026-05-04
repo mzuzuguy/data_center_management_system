@@ -1,6 +1,6 @@
 // src/components/entities/component.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-import { Server } from '../../servers/entities/server.entity';
+import { Server } from '../../server/entirties/server.entity';
 import { MetricReading } from '../../metric-readings/entities/metric-reading.entity';
 
 @Entity('components')
