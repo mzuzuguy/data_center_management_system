@@ -15,7 +15,7 @@ import { MetricReading } from './metric-readings/entities/metric-reading.entity'
       connectString: 'localhost:1521/data_center_pdb',
       username: 'pdb_admin',
       password: 'admin_password',
-      schema: 'PDB_ADMIN',
+      //schema: 'PDB_ADMIN',
       entities: [Server, Component, MetricReading],
       synchronize: false,
     }),

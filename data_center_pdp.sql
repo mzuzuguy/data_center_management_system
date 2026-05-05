@@ -1,3 +1,12 @@
+CREATE TABLE servers (
+    server_id     NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    server_name   VARCHAR2(100) NOT NULL,
+    location      VARCHAR2(100) NOT NULL,
+    server_type   VARCHAR2(20) NOT NULL,
+    status        VARCHAR2(20) DEFAULT 'ACTIVE',
+    registered_at DATE DEFAULT SYSDATE
+);
+
 CREATE TABLE components (
     component_id   NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     server_id      NUMBER NOT NULL,
@@ -16,3 +25,5 @@ CREATE TABLE metric_readings (
     recorded_at   TIMESTAMP DEFAULT SYSTIMESTAMP,
     CONSTRAINT fk_reading_comp FOREIGN KEY (component_id) REFERENCES components(component_id)
 );
+
+COMMIT;

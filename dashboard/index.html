@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Youtopia — Data Center Monitor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Custom title bar -->
+<div id="titlebar">
+  <div class="titlebar-left">
+    <span class="titlebar-logo">Youtopia</span>
+    <div class="titlebar-sep"></div>
+    <span class="titlebar-sub">Data Center Monitor</span>
+  </div>
+  <div class="titlebar-right">
+    <span class="titlebar-time" id="clock"></span>
+    <button class="win-btn win-min" onclick="if(window.electronAPI) window.electronAPI.minimize()"></button>
+    <button class="win-btn win-max" onclick="if(window.electronAPI) window.electronAPI.maximize()"></button>
+    <button class="win-btn win-close" onclick="if(window.electronAPI) window.electronAPI.close()"></button>
+  </div>
+</div>
+
+<!-- Main content -->
+<div class="main">
+
+  <!-- Controls bar -->
+  <div class="controls">
+    <div class="controls-left">
+      <div class="api-input-wrap">
+        <span class="api-label">API</span>
+        <input class="api-input" id="apiUrl" type="text"
+               placeholder="localhost:3000"
+               value="localhost:3000" />
+      </div>
+      <button class="btn btn-accent" onclick="fetchData()">
+        ↻ Refresh
+      </button>
+      <button class="btn" id="autoBtn" onclick="toggleAutoRefresh()">
+        <span class="dot-pulse" id="autoDot" style="background:var(--text-muted)"></span>
+        Auto-refresh: OFF
+      </button>
+    </div>
+    <div class="controls-right">
+      <span class="section-label" style="margin:0;font-size:10px" id="lastUpdated">Not yet fetched</span>
+    </div>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="section-label">Overview</div>
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card">
+      <div class="stat-label">Total Servers</div>
+      <div class="stat-value" id="statTotal">—</div>
+      <div class="stat-sub">registered</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Operational</div>
+      <div class="stat-value" style="color:var(--ok)" id="statOk">—</div>
+      <div class="stat-sub">all systems OK</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Warnings</div>
+      <div class="stat-value" style="color:var(--warn)" id="statWarn">—</div>
+      <div class="stat-sub">need attention</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Critical</div>
+      <div class="stat-value" style="color:var(--crit)" id="statCrit">—</div>
+      <div class="stat-sub">immediate action</div>
+    </div>
+  </div>
+
+  <!-- Server cards -->
+  <div class="section-label">Servers</div>
+  <div class="servers-grid" id="serversGrid">
+    <div class="empty-state">
+      <div class="spinner"></div>
+      Enter API address and click Refresh
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="section-label">System Alerts</div>
+  <div class="alerts-list" id="alertsList">
+    <div class="empty-state">No alerts to display</div>
+  </div>
+
+</div>
+
+<!-- Status bar -->
+<div class="statusbar">
+  <div class="status-item">
+    <div class="status-dot" id="connDot" style="background:var(--text-muted)"></div>
+    <span id="connStatus">Disconnected</span>
+  </div>
+  <div class="status-item">API: <span id="apiStatus">—</span></div>
+  <div class="status-item" style="margin-left:auto">Youtopia v1.0.0</div>
+</div>
+
+<script>
+  let autoInterval = null;
+  let autoOn = false;
+
+  // ── Clock ────────────────────────────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    const date = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    const time = now.toLocaleTimeString('en-US', { hour12: true });
+    document.getElementById('clock').textContent = date + '   |   ' + time;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ── Auto-refresh toggle ──────────────────────────────────────────────────
+  function toggleAutoRefresh() {
+    autoOn = !autoOn;
+    const btn = document.getElementById('autoBtn');
+    if (autoOn) {
+      btn.innerHTML = '<span class="dot-pulse" id="autoDot"></span> Auto-refresh: ON';
+      btn.classList.add('active');
+      autoInterval = setInterval(fetchData, 30000);
+      fetchData();
+    } else {
+      clearInterval(autoInterval);
+      btn.innerHTML = '<span class="dot-pulse" id="autoDot" style="background:var(--text-muted)"></span> Auto-refresh: OFF';
+      btn.classList.remove('active');
+    }
+  }
+
+  // ── Get base URL ─────────────────────────────────────────────────────────
+  function getBase() {
+    let val = document.getElementById('apiUrl').value.trim();
+    if (!val) val = 'localhost:3000';
+    if (!val.startsWith('http')) val = 'http://' + val;
+    return val;
+  }
+
+  // ── Determine overall status from metric readings ─────────────────────
+  function overallStatus(readings) {
+    if (!readings || readings.length === 0) return 'ok';
+    if (readings.some(r => r.health_status === 'CRITICAL')) return 'crit';
+    if (readings.some(r => r.health_status === 'WARNING'))  return 'warn';
+    return 'ok';
+  }
+
+  // ── Get latest reading for a component/metric type ────────────────────
+  function getMetric(readings, compId, metricType) {
+    const matches = readings
+      .filter(r => r.component_id === compId && r.metric_type === metricType)
+      .sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at));
+    return matches[0] || null;
+  }
+
+  // ── Colour helpers ───────────────────────────────────────────────────────
+  function statusColor(s) {
+    if (s === 'CRITICAL') return 'var(--crit)';
+    if (s === 'WARNING')  return 'var(--warn)';
+    return 'var(--ok)';
+  }
+
+  function statusClass(s) {
+    if (!s) return 'ok';
+    if (s === 'CRITICAL') return 'crit';
+    if (s === 'WARNING')  return 'warn';
+    return 'ok';
+  }
+
+  // ── Render a single metric bar ───────────────────────────────────────────
+  function renderBar(label, reading) {
+    if (!reading) return '';
+    const val = parseFloat(reading.metric_value).toFixed(1);
+    const pct = Math.min(parseFloat(val), 100);
+    const col = statusColor(reading.health_status);
+    return `
+      <div class="metric">
+        <div class="metric-header">
+          <span class="metric-name">${label}</span>
+          <span class="metric-value" style="color:${col}">${val}%</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%;background:${col}"></div>
+        </div>
+      </div>`;
+  }
+
+  // ── Render server cards ──────────────────────────────────────────────────
+  function renderServers(servers, components, readings) {
+    const grid = document.getElementById('serversGrid');
+    if (!servers.length) {
+      grid.innerHTML = '<div class="empty-state">No servers found. Register a server via the API.</div>';
+      return;
+    }
+
+    let okCount = 0, warnCount = 0, critCount = 0;
+
+    grid.innerHTML = servers.map((s, i) => {
+      const comps = components.filter(c => c.server_id === s.server_id);
+      const serverReadings = readings.filter(r =>
+        comps.some(c => c.component_id === r.component_id));
+
+      const cpuComp  = comps.find(c => c.component_type === 'cpu');
+      const ramComp  = comps.find(c => c.component_type === 'ram');
+      const diskComp = comps.find(c => c.component_type === 'disk');
+
+      const cpuR  = cpuComp  ? getMetric(readings, cpuComp.component_id,  'usage') : null;
+      const ramR  = ramComp  ? getMetric(readings, ramComp.component_id,  'usage') : null;
+      const diskR = diskComp ? getMetric(readings, diskComp.component_id, 'usage') : null;
+
+      const st = overallStatus(serverReadings);
+      if (st === 'ok')        okCount++;
+      else if (st === 'warn') warnCount++;
+      else                    critCount++;
+
+      const badgeLabel = st === 'crit' ? 'Critical' : st === 'warn' ? 'Warning' : 'OK';
+      const dotColor   = st === 'ok' ? 'var(--ok)' : st === 'warn' ? 'var(--warn)' : 'var(--crit)';
+
+      return `
+        <div class="server-card" style="animation-delay:${i * 0.05}s">
+          <div class="card-top">
+            <div>
+              <div class="card-name">${s.server_name}</div>
+              <div class="card-location">
+                ⊙ ${s.location}
+                <span class="card-type">${s.server_type || 'server'}</span>
+              </div>
+            </div>
+            <span class="status-badge badge-${st}">
+              <span class="badge-dot" style="background:${dotColor}"></span>
+              ${badgeLabel}
+            </span>
+          </div>
+          ${renderBar('CPU Usage', cpuR)}
+          ${renderBar('RAM Usage', ramR)}
+          ${renderBar('Disk Usage', diskR)}
+          ${!cpuR && !ramR && !diskR
+            ? '<div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);padding-top:4px">No metrics yet — run the agent</div>'
+            : ''}
+        </div>`;
+    }).join('');
+
+    document.getElementById('statTotal').textContent = servers.length;
+    document.getElementById('statOk').textContent    = okCount;
+    document.getElementById('statWarn').textContent  = warnCount;
+    document.getElementById('statCrit').textContent  = critCount;
+  }
+
+  // ── Render alerts ────────────────────────────────────────────────────────
+  function renderAlerts(readings, components, servers) {
+    const list = document.getElementById('alertsList');
+    const alerts = readings
+      .filter(r => r.health_status === 'WARNING' || r.health_status === 'CRITICAL')
+      .sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at))
+      .slice(0, 10);
+
+    if (!alerts.length) {
+      list.innerHTML = `
+        <div class="alert-item ok">
+          <div class="alert-icon ok">✓</div>
+          <div class="alert-body">
+            <div class="alert-title">All systems operational</div>
+            <div class="alert-time">No warnings or critical alerts</div>
+          </div>
+          <span class="alert-sev badge-ok">OK</span>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = alerts.map((r, i) => {
+      const comp       = components.find(c => c.component_id === r.component_id);
+      const server     = comp ? servers.find(s => s.server_id === comp.server_id) : null;
+      const serverName = server ? server.server_name : 'Unknown server';
+      const compType   = comp ? comp.component_type.toUpperCase() : 'COMPONENT';
+      const val        = parseFloat(r.metric_value).toFixed(1);
+      const st         = statusClass(r.health_status);
+      const icon       = st === 'crit' ? '✕' : '⚠';
+      const time       = new Date(r.recorded_at);
+      const timeStr    = isNaN(time) ? r.recorded_at : time.toLocaleTimeString('en-US', { hour12: true });
+
+      return `
+        <div class="alert-item ${st}" style="animation-delay:${i * 0.04}s">
+          <div class="alert-icon ${st}">${icon}</div>
+          <div class="alert-body">
+            <div class="alert-title">${serverName} — ${compType} usage at ${val}%</div>
+            <div class="alert-time">${timeStr}</div>
+          </div>
+          <span class="alert-sev badge-${st}">${r.health_status}</span>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Main fetch ───────────────────────────────────────────────────────────
+  async function fetchData() {
+    const base = getBase();
+    document.getElementById('apiStatus').textContent  = base;
+    document.getElementById('connDot').style.background = 'var(--warn)';
+    document.getElementById('connStatus').textContent = 'Connecting...';
+
+    try {
+      const [sRes, cRes, mRes] = await Promise.all([
+        fetch(`${base}/servers`),
+        fetch(`${base}/components`),
+        fetch(`${base}/metric-readings`)
+      ]);
+
+      if (!sRes.ok || !cRes.ok || !mRes.ok) throw new Error('API error');
+
+      const servers    = await sRes.json();
+      const components = await cRes.json();
+      const readings   = await mRes.json();
+
+      renderServers(servers, components, readings);
+      renderAlerts(readings, components, servers);
+
+      document.getElementById('connDot').style.background = 'var(--ok)';
+      document.getElementById('connStatus').textContent   = 'Connected';
+
+      const now = new Date();
+      document.getElementById('lastUpdated').textContent =
+        'Updated ' + now.toLocaleTimeString('en-US', { hour12: true });
+
+    } catch (err) {
+      document.getElementById('connDot').style.background = 'var(--crit)';
+      document.getElementById('connStatus').textContent   = 'Connection failed';
+      document.getElementById('serversGrid').innerHTML    =
+        `<div class="empty-state">Cannot reach API at ${getBase()}<br>Check the address and make sure NestJS is running</div>`;
+      document.getElementById('lastUpdated').textContent  = 'Failed to fetch';
+    }
+  }
+</script>
+</body>
+</html>
