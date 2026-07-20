@@ -19,7 +19,7 @@ export class Server {
   @Column({ default: 'ACTIVE' })
   status: string; // 'ACTIVE', 'DOWN', 'MAINTENANCE'
 
-  @Column({ type: 'date', default: () => 'SYSDATE' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   registered_at: Date;
 
   @OneToMany(() => Component, (component) => component.server)

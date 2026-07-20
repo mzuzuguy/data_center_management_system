@@ -22,7 +22,9 @@ export class MetricReading {
   @Column({ default: 'OK' })
   health_status: string; // 'OK', 'WARNING', 'CRITICAL'
 
-  @CreateDateColumn()
+  @CreateDateColumn({
+  type: 'timestamp'
+  })
   recorded_at: Date;
 
   @ManyToOne(() => Component, (component) => component.metric_readings)
