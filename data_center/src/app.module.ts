@@ -7,6 +7,8 @@ import { MetricReadingsModule } from './metric-readings/metric-readings.module';
 import { Server } from './server/entirties/server.entity';
 import { Component } from './component/entities/component.entity';
 import { MetricReading } from './metric-readings/entities/metric-reading.entity';
+import { ProcessReading } from './process-readings/entities/process-reading.entity';
+import { ProcessReadingsModule } from './process-readings/process-readings.module';
 
 @Module({
   imports: [
@@ -18,12 +20,13 @@ import { MetricReading } from './metric-readings/entities/metric-reading.entity'
       username: 'postgres',
       password: 'admin_password',
       //schema: 'public',
-      entities: [Server, Component, MetricReading],
+      entities: [Server, Component, MetricReading, ProcessReading],
       synchronize: true,
     }),
     ServersModule,
     ComponentsModule,
     MetricReadingsModule,
+    ProcessReadingsModule,
   ],
 })
 export class AppModule {}

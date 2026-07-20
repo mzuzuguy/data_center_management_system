@@ -451,6 +451,7 @@ body::before {
   padding: 0 16px;
   gap: 16px;
   z-index: 100;
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
 
@@ -524,4 +525,76 @@ body::before {
   font-size: 10px;
   color: var(--text-muted);
   margin-top: 2px;
+}
+
+.server-info {
+
+    display:flex;
+    justify-content:space-between;
+
+    font-size:10px;
+    font-family:var(--font-mono);
+
+    color:var(--text-muted);
+
+    border-top:1px solid var(--border);
+
+    padding-top:10px;
+    margin-top:10px;
+    margin-bottom:14px;
+
+}
+
+
+.server-card {
+
+    position:relative;
+
+}
+
+
+.server-card::before {
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+    top:0;
+
+    width:3px;
+    height:100%;
+
+    background:var(--accent);
+
+    border-radius:12px 0 0 12px;
+
+}
+
+
+.status-badge {
+
+    text-transform:uppercase;
+
+}
+
+
+.badge-ok .badge-dot {
+
+    animation:pulse 2s infinite;
+
+}
+
+
+.alert-item {
+
+    transition:transform .2s;
+
+}
+
+
+.alert-item:hover {
+
+    transform:translateX(5px);
+
 }
