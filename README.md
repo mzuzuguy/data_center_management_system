@@ -1,8 +1,10 @@
 # Youtopia Data Center Monitor
 
-A real-time data center monitoring system built with **NestJS**, **PostgreSQL**, **TypeORM**, and a lightweight **HTML/CSS/JavaScript dashboard**.
+A real-time data center monitoring system built with **NestJS, PostgreSQL, TypeORM, and a lightweight HTML/CSS/JavaScript dashboard**.
 
-The system collects server metrics from monitoring agents, stores readings in a database, and displays server health information through a web dashboard.
+The system is designed to collect server performance metrics from monitoring agents, store the data in a PostgreSQL database, and visualize infrastructure health through a web-based monitoring dashboard.
+
+Currently, the dashboard interface and monitoring features are implemented. The remaining development task is ensuring reliable communication between monitoring agents, the backend API, and the dashboard data layer.
 
 ---
 
@@ -10,55 +12,54 @@ The system collects server metrics from monitoring agents, stores readings in a 
 
 ## Backend
 
-* REST API built with NestJS
-* PostgreSQL database integration
-* TypeORM entity management
-* Server registration
-* Component tracking
-* Metric storage
-* Health status monitoring
-* Real-time metric retrieval
+- REST API built with NestJS
+- PostgreSQL database integration
+- TypeORM entity management
+- Server registration
+- Component tracking
+- Metric storage
+- Health status evaluation
+- Metric retrieval API
+- Monitoring agent support
 
-## Dashboard
+---
 
-* HTML/CSS based monitoring interface
+# Dashboard
 
-* Displays:
+A lightweight HTML/CSS/JavaScript monitoring interface.
 
-  * Total servers
-  * Operational servers
-  * Warning states
-  * Critical states
-  * CPU usage
-  * RAM usage
-  * Disk usage
-  * System alerts
+The dashboard displays:
 
-* Manual refresh
-
-* Automatic refresh mode
-
-* Connection status monitoring
+- Total registered servers
+- Operational servers
+- Warning states
+- Critical states
+- CPU utilization
+- RAM utilization
+- Disk utilization
+- System alerts
+- Server status cards
+- Connection monitoring
+- Manual refresh
+- Automatic refresh mode
 
 ---
 
 # System Architecture
 
-```
 Monitoring Agent
-       |
-       |
-       v
-NestJS API
-       |
-       |
-       v
+|
+|
+v
+NestJS REST API
+|
+|
+v
 PostgreSQL Database
-       |
-       |
-       v
+|
+|
+v
 HTML/CSS/JavaScript Dashboard
-```
 
 ---
 
@@ -72,197 +73,136 @@ Install the following:
 
 Recommended:
 
-```
 Node.js >= 18
-```
+
 
 Check installation:
 
 ```bash
 node -v
 npm -v
-```
 
----
-
-### PostgreSQL
+PostgreSQL
 
 Required:
 
-```
 PostgreSQL >= 14
-```
 
 Check:
 
-```bash
 psql --version
-```
-
----
-
-### Git
+Git
 
 Check:
 
-```bash
 git --version
-```
-
----
-
-# Backend Setup
-
-## Clone Repository
-
-```bash
+Backend Setup
+Clone Repository
 git clone <repository-url>
-```
 
 Move into the project:
 
-```bash
 cd data_center
-```
-
----
-
-## Install Dependencies
-
-Run:
-
-```bash
+Install Dependencies
 npm install
-```
-
----
-
-# Database Setup
+Database Setup
 
 Create the database:
 
-```bash
 createdb data_center_db
-```
 
 or using PostgreSQL:
 
-```bash
 psql -U postgres
-```
 
 Inside PostgreSQL:
 
-```sql
 CREATE DATABASE data_center_db;
-```
 
 Exit:
 
-```sql
 \q
-```
+Database Configuration
 
----
+Database configuration is located in:
 
-# Database Configuration
-
-The database connection is configured in:
-
-```
 src/app.module.ts
-```
 
 Example:
 
-```ts
 TypeOrmModule.forRoot({
+
     type: 'postgres',
+
     host: 'localhost',
+
     port: 5432,
+
     database: 'data_center_db',
+
     username: 'postgres',
+
     password: 'your_password',
+
     entities: [
         Server,
         Component,
         MetricReading
     ],
-    synchronize: true,
+
+    synchronize: true
+
 })
-```
+Development Configuration
 
-### Development
+During development:
 
-Use:
-
-```ts
 synchronize: true
-```
 
-This automatically creates tables.
+This automatically creates database tables.
 
-### Production
+For production:
 
-Change to:
-
-```ts
 synchronize: false
-```
 
-Use migrations instead.
+Use TypeORM migrations instead.
 
----
+Database Structure
 
-# Database Tables
+The system contains the following tables:
 
-The system creates:
-
-## Servers
+Servers
 
 Stores registered servers.
 
 Example fields:
 
-```
 server_id
 server_name
 location
 server_type
 created_at
-```
+Components
 
----
-
-## Components
-
-Stores server components.
+Stores hardware components belonging to servers.
 
 Example:
 
-```
 component_id
 server_id
 component_type
-```
 
-Examples:
+Supported components:
 
-```
 CPU
 RAM
 Disk
-```
+Metric Readings
 
----
+Stores collected monitoring data.
 
-## Metric Readings
+Example fields:
 
-Stores monitoring data.
-
-Example:
-
-```
 reading_id
 component_id
 metric_type
@@ -270,348 +210,244 @@ metric_value
 metric_unit
 health_status
 recorded_at
-```
-
----
-
-# Running the Backend
+Running the Backend
 
 Start development server:
 
-```bash
 npm run start:dev
-```
 
 Successful startup:
 
-```
 Nest application successfully started
-```
 
-API runs on:
+API available at:
 
-```
 http://localhost:3000
-```
+API Endpoints
+Servers
 
----
+Retrieve registered servers:
 
-# API Endpoints
-
-## Servers
-
-Get all servers:
-
-```
 GET /servers
-```
 
 Example:
 
-```
 http://localhost:3000/servers
-```
+Components
 
----
+Retrieve server components:
 
-## Components
-
-Get all components:
-
-```
 GET /components
-```
 
 Example:
 
-```
 http://localhost:3000/components
-```
+Metric Readings
 
----
+Retrieve monitoring data:
 
-## Metric Readings
-
-Get all metrics:
-
-```
 GET /metric-readings
-```
 
 Example:
 
-```
 http://localhost:3000/metric-readings
-```
+Dashboard Setup
 
----
+Dashboard structure:
 
-# Dashboard Setup
-
-The dashboard consists of:
-
-```
 dashboard/
-│
+
 ├── index.html
 ├── style.css
 └── app.js
-```
-
----
-
-## Connecting Dashboard To API
+Connecting Dashboard To Backend
 
 Open:
 
-```
 app.js
-```
 
-Update:
+Configure API URL:
 
-```javascript
 const API_URL = "http://localhost:3000";
-```
 
-The dashboard fetches:
+The dashboard consumes:
 
-```
-/servers
-/components
-/metric-readings
-```
+GET /servers
 
----
+GET /components
 
-# Running Dashboard
+GET /metric-readings
+Running Dashboard
 
-You can open:
+The dashboard can be opened directly:
 
-```
 index.html
-```
 
-directly in a browser.
+For development, use a local server.
 
-For better development use a local server.
+Example using VS Code:
 
-Example:
-
-Using VS Code Live Server:
-
-1. Install Live Server extension
-2. Right click index.html
-3. Select:
-
-```
+Install Live Server extension
+Right click:
+index.html
+Select:
 Open with Live Server
-```
+Monitoring Agent
 
----
+The monitoring agent collects system metrics:
 
-# Monitoring Agent
+CPU usage
+RAM usage
+Disk usage
 
-The monitoring agent collects:
+Collected data is sent to:
 
-* CPU usage
-* RAM usage
-* Disk usage
-
-Metrics are sent to:
-
-```
 POST /metric-readings
-```
 
 Example payload:
 
-```json
 {
     "component_id": 1,
     "metric_type": "usage",
     "metric_value": 45.5,
     "metric_unit": "percent"
 }
-```
+Health Status Rules
 
----
+The monitoring system classifies server health.
 
-# Health Status Rules
-
-The system categorizes metrics:
-
-## OK
+OK
 
 Normal operation.
 
-```
 health_status = OK
-```
-
----
-
-## WARNING
+WARNING
 
 Resource usage requires attention.
 
-```
 health_status = WARNING
-```
-
----
-
-## CRITICAL
+CRITICAL
 
 Immediate action required.
 
-```
 health_status = CRITICAL
-```
-
----
-
-# Development Workflow
+Development Workflow
 
 Start PostgreSQL:
 
-```bash
 sudo systemctl start postgresql
-```
 
 Start backend:
 
-```bash
 npm run start:dev
-```
 
 Open dashboard:
 
-```
 index.html
-```
 
-Send agent metrics.
+Start monitoring agent.
 
-Refresh dashboard.
+Verify metrics appear through:
 
----
+GET /metric-readings
+Known Development Issue
 
-# Common Problems
+The dashboard interface has been implemented with:
 
-## Database does not exist
+Server cards
+Metric visualizations
+Alerts
+Connection monitoring
+Auto refresh support
+
+However, the current development stage requires further testing of the complete data pipeline:
+
+Monitoring Agent
+        |
+        v
+NestJS API
+        |
+        v
+PostgreSQL
+        |
+        v
+Dashboard
+
+The next debugging step is verifying that agent-generated metrics are correctly received by the API and stored in the database.
+
+Common Problems
+Database does not exist
 
 Error:
 
-```
 database "data_center_db" does not exist
-```
 
 Solution:
 
-Create database:
-
-```sql
 CREATE DATABASE data_center_db;
-```
-
----
-
-## Missing PostgreSQL tables
+Missing PostgreSQL tables
 
 Error:
 
-```
 relation "metric_readings" does not exist
-```
 
 Solution:
 
 Enable:
 
-```ts
 synchronize:true
-```
 
 Restart NestJS.
 
----
+PostgreSQL Syntax Issues
 
-## Oracle Syntax Error
-
-Error:
-
-```
-cannot use column reference in DEFAULT expression
-```
-
-Cause:
-
-Oracle functions are being used.
+Avoid Oracle-specific functions:
 
 Incorrect:
 
-```ts
 SYSDATE
 SYSTIMESTAMP
-```
 
 PostgreSQL equivalent:
 
-```ts
 CURRENT_TIMESTAMP
-```
+Technology Stack
+Backend
+NestJS
+TypeScript
+TypeORM
+PostgreSQL
+Frontend
+HTML5
+CSS3
+JavaScript
+Development Tools
+Git
+VS Code
+PostgreSQL CLI
+Future Improvements
 
----
+Planned upgrades:
 
-# Technology Stack
+WebSocket real-time updates
+Authentication system
+Multiple data center support
+Email/SMS notifications
+Agent auto-registration
+Historical performance graphs
+Prometheus integration
+Docker deployment
+Infrastructure analytics
+Author
 
-## Backend
-
-* NestJS
-* TypeScript
-* TypeORM
-* PostgreSQL
-
-## Frontend
-
-* HTML5
-* CSS3
-* JavaScript
-
-## Development Tools
-
-* Git
-* VS Code
-* PostgreSQL CLI
-
----
-
-# Future Improvements
-
-Possible upgrades:
-
-* WebSocket live updates
-* User authentication
-* Multiple data centers
-* Email/SMS alerts
-* Agent auto-registration
-* Historical graphs
-* Prometheus integration
-* Docker deployment
-
----
-
-# Author
-
-**Precious Musole**
+Precious Musole
 
 Software Developer
 
-Project: Youtopia Data Center Monitor
+Project:
 
----
+Youtopia Data Center Monitor
 
-# License
+License
 
 This project is for educational and development purposes.
