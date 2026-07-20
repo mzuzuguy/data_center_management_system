@@ -1,5 +1,5 @@
 // src/metric-readings/entities/metric-reading.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { Component } from '../../component/entities/component.entity';
 
 @Entity('metric_readings')
@@ -22,7 +22,7 @@ export class MetricReading {
   @Column({ default: 'OK' })
   health_status: string; // 'OK', 'WARNING', 'CRITICAL'
 
-  @Column({ type: 'timestamp', default: () => 'SYSTIMESTAMP' })
+  @CreateDateColumn()
   recorded_at: Date;
 
   @ManyToOne(() => Component, (component) => component.metric_readings)

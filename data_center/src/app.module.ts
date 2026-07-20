@@ -11,13 +11,15 @@ import { MetricReading } from './metric-readings/entities/metric-reading.entity'
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'oracle',
-      connectString: 'localhost:1521/data_center_pdb',
-      username: 'pdb_admin',
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      database: 'data_center_db',
+      username: 'postgres',
       password: 'admin_password',
-      //schema: 'PDB_ADMIN',
+      //schema: 'public',
       entities: [Server, Component, MetricReading],
-      synchronize: false,
+      synchronize: true,
     }),
     ServersModule,
     ComponentsModule,
